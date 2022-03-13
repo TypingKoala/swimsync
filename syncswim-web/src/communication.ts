@@ -7,7 +7,7 @@ let callbacksRegistered = false;
 
 export const getSocket = () => {
   if (!socket) {
-    socket = io("http://localhost:3010");
+    socket = io("http://swimserver.johnnybui.com:3010");
   }
 
   return socket;
