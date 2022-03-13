@@ -2,23 +2,27 @@ import "./Home.css";
 
 import {
   Box,
+  Button,
   Flex,
   FormControl,
   FormErrorMessage,
+  HStack,
   IconButton,
   Input,
   InputGroup,
   InputRightElement,
   VStack,
 } from "@chakra-ui/react";
-import Pusher, { Channel } from 'pusher-js';
 import React, { useEffect } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { adjectives, animals, colors, uniqueNamesGenerator } from "unique-names-generator";
+import {
+  adjectives,
+  animals,
+  colors,
+  uniqueNamesGenerator,
+} from "unique-names-generator";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ReactPlayer from "react-player";
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { useChannel } from "./communication";
 
 interface VideoSrcFormProps {
@@ -44,7 +48,7 @@ const VideoSrcForm = (props: VideoSrcFormProps) => {
     <form onSubmit={handleSubmit(onSubmit)} className="VideoSrcForm">
       <Flex justifyContent="center">
         <FormControl isInvalid={!!errors.videoSrc} maxWidth="800px">
-          <InputGroup size="md">
+          <HStack>
             <Input
               placeholder="Enter video url..."
               size="lg"
@@ -57,15 +61,10 @@ const VideoSrcForm = (props: VideoSrcFormProps) => {
                   "This video type cannot be played",
               })}
             />
-            <InputRightElement m="4px">
-              <IconButton
-                type="submit"
-                size="sm"
-                aria-label="Submit"
-                icon={<FontAwesomeIcon icon={faArrowRight} />}
-              />
-            </InputRightElement>
-          </InputGroup>
+            <Button type="submit" aria-label="Go">
+              Go
+            </Button>
+          </HStack>
           <FormErrorMessage>{errors.videoSrc?.message}</FormErrorMessage>
         </FormControl>
       </Flex>
@@ -73,22 +72,22 @@ const VideoSrcForm = (props: VideoSrcFormProps) => {
   );
 };
 
-const VideoPlayer = (props: { src: string, roomName: string }) => {
-  const videoRef = React.useRef<any>()
+const VideoPlayer = (props: { src: string; roomName: string }) => {
+  const videoRef = React.useRef<any>();
 
-  const channel = useChannel(props.roomName)
+  const channel = useChannel(props.roomName);
 
   useEffect(() => {
-    channel?.trigger('client-join', {
+    channel?.trigger("client-join", {
       src: props.src,
-      leader: true
-    })
+      leader: true,
+    });
 
     // update url
-    var queryParams = new URLSearchParams(window.location.search)
-    queryParams.set("room", props.roomName)
-    history.pushState(null, '', "?"+queryParams.toString())
-  })
+    var queryParams = new URLSearchParams(window.location.search);
+    queryParams.set("room", props.roomName);
+    history.pushState(null, "", "?" + queryParams.toString());
+  });
 
   return (
     <Box maxW="100%">
@@ -99,7 +98,7 @@ const VideoPlayer = (props: { src: string, roomName: string }) => {
         width="100%"
         height="100%"
         onBufferEnd={() => console.log("buffer end")}
-        onProgress={data => console.log("progress", data) }
+        onProgress={(data) => console.log("progress", data)}
       />
     </Box>
   );
@@ -109,18 +108,18 @@ const Home = () => {
   const [videoSrc, setVideoSrc] = React.useState("");
   const [roomName, setRoomName] = React.useState("");
 
-  const channel = useChannel(roomName)
+  const channel = useChannel(roomName);
 
   const onSetVideoSrc = (src: string) => {
     const roomName: string = uniqueNamesGenerator({
       dictionaries: [colors, adjectives, animals],
       separator: "",
-      style: "capital"
+      style: "capital",
     });
 
-    setRoomName(roomName)
-    setVideoSrc(src)
-  }
+    setRoomName(roomName);
+    setVideoSrc(src);
+  };
 
   return (
     <Box w="100vw" h="100vh" p="32px">
