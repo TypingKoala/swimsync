@@ -2,7 +2,6 @@ import "./Home.css";
 
 import {
   Box,
-  Button,
   Flex,
   FormControl,
   FormErrorMessage,
@@ -12,12 +11,15 @@ import {
   InputRightElement,
   VStack,
 } from "@chakra-ui/react";
+import Pusher, { Channel } from 'pusher-js';
+import React, { useEffect } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { adjectives, animals, colors, uniqueNamesGenerator } from "unique-names-generator";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React from "react";
 import ReactPlayer from "react-player";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import { useChannel } from "./communication";
 
 interface VideoSrcFormProps {
   setVideoSrc: (src: string) => void;
@@ -71,12 +73,22 @@ const VideoSrcForm = (props: VideoSrcFormProps) => {
   );
 };
 
-const VideoPlayer = (props: { src: string }) => {
+const VideoPlayer = (props: { src: string, roomName: string }) => {
   const videoRef = React.useRef<any>()
 
-  if (!props.src) {
-    return <></>;
-  }
+  const channel = useChannel(props.roomName)
+
+  useEffect(() => {
+    channel?.trigger('client-join', {
+      src: props.src,
+      leader: true
+    })
+
+    // update url
+    var queryParams = new URLSearchParams(window.location.search)
+    queryParams.set("room", props.roomName)
+    history.pushState(null, '', "?"+queryParams.toString())
+  })
 
   return (
     <Box maxW="100%">
@@ -95,12 +107,26 @@ const VideoPlayer = (props: { src: string }) => {
 
 const Home = () => {
   const [videoSrc, setVideoSrc] = React.useState("");
+  const [roomName, setRoomName] = React.useState("");
+
+  const channel = useChannel(roomName)
+
+  const onSetVideoSrc = (src: string) => {
+    const roomName: string = uniqueNamesGenerator({
+      dictionaries: [colors, adjectives, animals],
+      separator: "",
+      style: "capital"
+    });
+
+    setRoomName(roomName)
+    setVideoSrc(src)
+  }
 
   return (
     <Box w="100vw" h="100vh" p="32px">
       <VStack>
-        <VideoSrcForm setVideoSrc={(src) => setVideoSrc(src)} />
-        <VideoPlayer src={videoSrc} />
+        <VideoSrcForm setVideoSrc={onSetVideoSrc} />
+        {!!videoSrc && <VideoPlayer src={videoSrc} roomName={roomName} />}
       </VStack>
     </Box>
   );
